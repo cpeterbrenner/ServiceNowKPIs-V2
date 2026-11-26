@@ -1,0 +1,346 @@
+table SLA
+	lineageTag: 29f7f188-458d-4bf1-94bd-56d03c3ea1ac
+
+	measure 'Open Incidents SLA Base' =
+			CALCULATE(
+				MAX(SLA[SLA_Base]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "open incidents"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000018
+
+	measure 'Open Incidents SLA Caution' =
+			CALCULATE(
+				MAX(SLA[SLA_Caution]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "open incidents"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000019
+
+	measure 'Open Incidents SLA Warn' =
+			CALCULATE(
+				MAX(SLA[SLA_Warn]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "open incidents"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000001a
+
+	measure 'Open Incidents SLA Critical' =
+			CALCULATE(
+				MAX(SLA[SLA_Critical]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "open incidents"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000001c
+
+	measure 'Unassigned Count SLA Base' =
+			CALCULATE(
+				MAX(SLA[SLA_Base]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "unassigned count"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000001d
+
+	measure 'Unassigned Count SLA Caution' =
+			CALCULATE(
+				MAX(SLA[SLA_Caution]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "unassigned count"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000001e
+
+	measure 'Unassigned Count SLA Warn' =
+			CALCULATE(
+				MAX(SLA[SLA_Warn]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "unassigned count"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000001f
+
+	measure 'Unassigned Count SLA Critical' =
+			CALCULATE(
+				MAX(SLA[SLA_Critical]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "unassigned count"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000020
+
+	measure 'Overall MTTR Hours SLA Base' =
+			CALCULATE(
+				MAX(SLA[SLA_Base]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr hours"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000022
+
+	measure 'Overall MTTR Hours SLA Caution' =
+			CALCULATE(
+				MAX(SLA[SLA_Caution]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr hours"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000023
+
+	measure 'Overall MTTR Hours SLA Warn' =
+			CALCULATE(
+				MAX(SLA[SLA_Warn]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr hours"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000024
+
+	measure 'Overall MTTR Hours SLA Critical' =
+			CALCULATE(
+				MAX(SLA[SLA_Critical]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr hours"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000025
+
+	measure 'Overall MTTR Days SLA Base' =
+			CALCULATE(
+				MAX(SLA[SLA_Base]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000027
+
+	measure 'Overall MTTR Days SLA Caution' =
+			CALCULATE(
+				MAX(SLA[SLA_Caution]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000028
+
+	measure 'Overall MTTR Days SLA Warn' =
+			CALCULATE(
+				MAX(SLA[SLA_Warn]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000029
+
+	measure 'Overall MTTR Days SLA Critical' =
+			CALCULATE(
+				MAX(SLA[SLA_Critical]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000002a
+
+	measure 'Oldest Unassigned Days SLA Base' =
+			CALCULATE(
+				MAX(SLA[SLA_Base]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest unassigned days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000002c
+
+	measure 'Oldest Unassigned Days SLA Caution' =
+			CALCULATE(
+				MAX(SLA[SLA_Caution]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest unassigned days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000002d
+
+	measure 'Oldest Unassigned Days SLA Warn' =
+			CALCULATE(
+				MAX(SLA[SLA_Warn]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest unassigned days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000002e
+
+	measure 'Oldest Unassigned Days SLA Critical' =
+			CALCULATE(
+				MAX(SLA[SLA_Critical]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest unassigned days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000002f
+
+	measure 'Oldest Assigned Days SLA Base' =
+			CALCULATE(
+				MAX(SLA[SLA_Base]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest assigned days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000031
+
+	measure 'Oldest Assigned Days SLA Caution' =
+			CALCULATE(
+				MAX(SLA[SLA_Caution]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest assigned days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000032
+
+	measure 'Oldest Assigned Days SLA Warn' =
+			CALCULATE(
+				MAX(SLA[SLA_Warn]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest assigned days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000033
+
+	measure 'Oldest Assigned Days SLA Critical' =
+			CALCULATE(
+				MAX(SLA[SLA_Critical]),
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest assigned days"
+				)
+			)
+		formatString: 0
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000034
+
+	column SLA
+		dataType: string
+		lineageTag: 6854cbfe-30ca-4d8e-bb9c-ffe0e038a0a1
+		summarizeBy: none
+		sourceColumn: SLA
+
+		annotation SummarizationSetBy = Automatic
+
+	column SLA_Critical
+		dataType: int64
+		formatString: 0
+		lineageTag: 95b5990b-802f-4684-9724-9b45a3dfbd32
+		summarizeBy: none
+		sourceColumn: SLA_Critical
+
+		annotation SummarizationSetBy = Automatic
+
+	column SLA_Warn
+		dataType: int64
+		formatString: 0
+		lineageTag: b79eca0c-f268-4b73-99cb-0fff0f92a128
+		summarizeBy: none
+		sourceColumn: SLA_Warn
+
+		annotation SummarizationSetBy = Automatic
+
+	column SLA_Caution
+		dataType: int64
+		formatString: 0
+		lineageTag: 800cccbd-fa3b-4ca3-b925-9b85e1339b20
+		summarizeBy: none
+		sourceColumn: SLA_Caution
+
+		annotation SummarizationSetBy = Automatic
+
+	column SLA_Base
+		dataType: int64
+		formatString: 0
+		lineageTag: 7b103e91-fdc8-470f-a8cc-33af2bc0d772
+		summarizeBy: none
+		sourceColumn: SLA_Base
+
+		annotation SummarizationSetBy = Automatic
+
+	partition SLA = m
+		mode: import
+		source =
+				let
+				  Source = Excel.Workbook(File.Contents("C:\Users\pebren\Development\ServiceNow-KPI\Data\slas.xlsx"), null, true),
+				  #"Navigation 1" = Source{[Item = "SLA", Kind = "Sheet"]}[Data],
+				  #"Promoted headers" = Table.PromoteHeaders(#"Navigation 1", [PromoteAllScalars = true]),
+				  #"Changed column type" = Table.TransformColumnTypes(#"Promoted headers", {{"SLA", type text}, {"SLA_Critical", Int64.Type}, {"SLA_Warn", Int64.Type}, {"SLA_Caution", Int64.Type}, {"SLA_Base", Int64.Type}})
+				in
+				  #"Changed column type"
+

@@ -1,0 +1,58 @@
+table TicketChannel
+	lineageTag: b2c9d3e4-7f5a-4b92-c3d9-0e2f6a8b4c05
+
+	measure 'Tickets by Channel' =
+			VAR ChannelName = SELECTEDVALUE(TicketChannel[Channel])
+			RETURN
+				IF(
+					ISBLANK(ChannelName),
+					BLANK(),
+					COALESCE(
+						CALCULATE(
+							COUNTROWS(incident),
+							REMOVEFILTERS(TicketChannel),
+							incident[Ticket Channel] = ChannelName
+						),
+						0
+					)
+				)
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00002-0000-0000-0000-000000000042
+
+	column Channel
+		dataType: string
+		lineageTag: b2c9d3e4-7f5a-4b92-c3d9-0e2f6a8b4c06
+		summarizeBy: none
+		sourceColumn: Channel
+		sortByColumn: SortOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	column SortOrder
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b2c9d3e4-7f5a-4b92-c3d9-0e2f6a8b4c07
+		summarizeBy: sum
+		sourceColumn: SortOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition TicketChannel = m
+		mode: import
+		source =
+				let
+					Source = #table(
+						type table [Channel = text, SortOrder = Int64.Type],
+						{
+							{"Walk in", 1},
+							{"Self Service", 2},
+							{"Email", 3},
+							{"Phone", 4},
+							{"Other", 5}
+						}
+					)
+				in
+					Source
+

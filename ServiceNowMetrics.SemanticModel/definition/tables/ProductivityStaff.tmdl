@@ -1,0 +1,213 @@
+table ProductivityStaff
+	lineageTag: a4b8c2d1-6e3f-4a91-b2c8-9d1e5f7a3b04
+
+	measure 'Assigned Workload' =
+			VAR StaffName = SELECTEDVALUE(ProductivityStaff[EmployeeName])
+			VAR NamedStaff =
+				CALCULATETABLE(
+					VALUES(ProductivityStaff[EmployeeName]),
+					ProductivityStaff[EmployeeName] <> "Other",
+					REMOVEFILTERS(ProductivityStaff)
+				)
+			VAR NamedAssignees = TREATAS(NamedStaff, incident[assigned_to])
+			RETURN
+				IF(
+					ISBLANK(StaffName),
+					BLANK(),
+					IF(
+						StaffName = "Other",
+						COALESCE(
+							CALCULATE(
+								COUNTROWS(incident),
+								REMOVEFILTERS(ProductivityStaff),
+								REMOVEFILTERS(incident[opened_at]),
+								incident[active] = TRUE(),
+								incident[Is Unassigned] = FALSE(),
+								NOT(incident[state] IN {"Resolved", "Closed"}),
+								FILTER(
+									ALL(incident[assigned_to]),
+									NOT(incident[assigned_to] IN NamedAssignees)
+								)
+							),
+							0
+						),
+						COALESCE(
+							CALCULATE(
+								COUNTROWS(incident),
+								REMOVEFILTERS(ProductivityStaff),
+								REMOVEFILTERS(incident[assigned_to]),
+								REMOVEFILTERS(incident[opened_at]),
+								incident[active] = TRUE(),
+								incident[Is Unassigned] = FALSE(),
+								NOT(incident[state] IN {"Resolved", "Closed"}),
+								TREATAS({StaffName}, incident[assigned_to])
+							),
+							0
+						)
+					)
+				)
+		formatString: #,0
+		displayFolder: Productivity
+		lineageTag: e79fd1d6-96ab-461f-8a4f-719ddab76a9c
+
+	measure 'Avg Tickets Closed Per Week' =
+			VAR StaffName = SELECTEDVALUE(ProductivityStaff[EmployeeName])
+			VAR YtdStart = DATE(YEAR(TODAY()), 1, 1)
+			VAR YtdEnd = TODAY()
+			VAR NamedStaff =
+				CALCULATETABLE(
+					VALUES(ProductivityStaff[EmployeeName]),
+					ProductivityStaff[EmployeeName] <> "Other",
+					REMOVEFILTERS(ProductivityStaff)
+				)
+			VAR NamedResolvers = TREATAS(NamedStaff, incident[resolved_by])
+			VAR ClosedCount =
+				IF(
+					ISBLANK(StaffName),
+					BLANK(),
+					IF(
+						StaffName = "Other",
+						COALESCE(
+							CALCULATE(
+								COUNTROWS(incident),
+								REMOVEFILTERS(ProductivityStaff),
+								incident[Is Closed Ticket] = TRUE(),
+								NOT(ISBLANK(incident[resolved_at])),
+								incident[resolved_at] >= YtdStart,
+								incident[resolved_at] <= YtdEnd,
+								REMOVEFILTERS(incident[assigned_to]),
+								REMOVEFILTERS(incident[opened_at]),
+								REMOVEFILTERS(incident[resolved_at]),
+								FILTER(
+									ALL(incident[resolved_by]),
+									NOT(ISBLANK(incident[resolved_by]))
+										&& NOT(incident[resolved_by] IN NamedResolvers)
+								)
+							),
+							0
+						),
+						COALESCE(
+							CALCULATE(
+								COUNTROWS(incident),
+								REMOVEFILTERS(ProductivityStaff),
+								REMOVEFILTERS(incident[assigned_to]),
+								REMOVEFILTERS(incident[resolved_by]),
+								incident[Is Closed Ticket] = TRUE(),
+								incident[Is Unassigned] = FALSE(),
+								NOT(ISBLANK(incident[resolved_at])),
+								incident[resolved_at] >= YtdStart,
+								incident[resolved_at] <= YtdEnd,
+								REMOVEFILTERS(incident[opened_at]),
+								REMOVEFILTERS(incident[resolved_at]),
+								TREATAS({StaffName}, incident[resolved_by])
+							),
+							0
+						)
+					)
+				)
+			VAR WeekCount = MAX(1, (DATEDIFF(YtdStart, YtdEnd, DAY) + 1) / 7)
+			RETURN
+				COALESCE(DIVIDE(ClosedCount, WeekCount, 0), 0)
+		formatString: #,0.0
+		displayFolder: Productivity
+		lineageTag: 2875b705-a6ca-40ef-a840-96669ffe86d0
+
+	measure 'Incidents Reopened YTD' =
+			VAR StaffName = SELECTEDVALUE(ProductivityStaff[EmployeeName])
+			VAR YearStart = DATE(YEAR(TODAY()), 1, 1)
+			VAR YearEnd = TODAY()
+			VAR NamedStaff =
+				CALCULATETABLE(
+					VALUES(ProductivityStaff[EmployeeName]),
+					ProductivityStaff[EmployeeName] <> "Other",
+					REMOVEFILTERS(ProductivityStaff)
+				)
+			VAR NamedResolvers = TREATAS(NamedStaff, incident[resolved_by])
+			RETURN
+				IF(
+					ISBLANK(StaffName) || StaffName = "",
+					BLANK(),
+					IF(
+						StaffName = "Other",
+						COALESCE(
+							CALCULATE(
+								COUNTROWS(incident),
+								REMOVEFILTERS(ProductivityStaff),
+								REMOVEFILTERS(incident[assigned_to]),
+								REMOVEFILTERS(incident[opened_at]),
+								REMOVEFILTERS(incident[resolved_at]),
+								REMOVEFILTERS(incident[reopened_time]),
+								NOT(ISBLANK(incident[reopened_by])),
+								NOT(ISBLANK(incident[reopened_time])),
+								incident[reopened_time] >= YearStart,
+								incident[reopened_time] <= YearEnd,
+								FILTER(
+									ALL(incident[resolved_by]),
+									NOT(ISBLANK(incident[resolved_by]))
+										&& NOT(incident[resolved_by] IN NamedResolvers)
+								)
+							),
+							0
+						),
+						COALESCE(
+							CALCULATE(
+								COUNTROWS(incident),
+								REMOVEFILTERS(ProductivityStaff),
+								REMOVEFILTERS(incident[assigned_to]),
+								REMOVEFILTERS(incident[opened_at]),
+								REMOVEFILTERS(incident[resolved_at]),
+								REMOVEFILTERS(incident[resolved_by]),
+								REMOVEFILTERS(incident[reopened_time]),
+								NOT(ISBLANK(incident[reopened_by])),
+								NOT(ISBLANK(incident[reopened_time])),
+								incident[reopened_time] >= YearStart,
+								incident[reopened_time] <= YearEnd,
+								TREATAS({StaffName}, incident[resolved_by])
+							),
+							0
+						)
+					)
+				)
+		formatString: #,0
+		displayFolder: Productivity
+		lineageTag: f8a3b2c1-0001-4001-8001-000000000003
+
+	column EmployeeName
+		dataType: string
+		lineageTag: a4b8c2d1-6e3f-4a91-b2c8-9d1e5f7a3b05
+		summarizeBy: none
+		sourceColumn: EmployeeName
+		sortByColumn: SortOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	column SortOrder
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a4b8c2d1-6e3f-4a91-b2c8-9d1e5f7a3b06
+		summarizeBy: sum
+		sourceColumn: SortOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ProductivityStaff = m
+		mode: import
+		source =
+				let
+					Source = #table(
+						type table [EmployeeName = text, SortOrder = Int64.Type],
+						{
+							{"Jor-el Taylor", 3},
+							{"Billy Staton", 6},
+							{"Marcus Menasce", 4},
+							{"Rodney Woodson", 2},
+							{"Horacio Rodriguez", 5},
+							{"Stephanie Lawler", 1},
+							{"Jose Gallegos Sanchez", 7},
+							{"Other", 8}
+						}
+					)
+				in
+					Source
+

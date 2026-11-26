@@ -1,0 +1,166 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "activeIncidentsTable",
+  "position": {
+    "x": 30.735776608737996,
+    "y": 80,
+    "z": 0,
+    "height": 558,
+    "width": 1249.0496451636079,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "incident"
+                    }
+                  },
+                  "Property": "Incident"
+                }
+              },
+              "queryRef": "incident.Incident",
+              "nativeQueryRef": "Incident"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "incident"
+                    }
+                  },
+                  "Property": "Opened"
+                }
+              },
+              "queryRef": "incident.Opened",
+              "nativeQueryRef": "Opened"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "incident"
+                    }
+                  },
+                  "Property": "Opened By"
+                }
+              },
+              "queryRef": "incident.Opened By",
+              "nativeQueryRef": "Opened By"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "incident"
+                    }
+                  },
+                  "Property": "Short Description (90)"
+                }
+              },
+              "queryRef": "incident.Short Description (90)",
+              "nativeQueryRef": "Short Description (90)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "incident"
+                    }
+                  },
+                  "Property": "Assigned To"
+                }
+              },
+              "queryRef": "incident.Assigned To",
+              "nativeQueryRef": "Assigned To"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "incident"
+                    }
+                  },
+                  "Property": "Resolved By"
+                }
+              },
+              "queryRef": "incident.Resolved By",
+              "nativeQueryRef": "Resolved By"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "incident"
+                    }
+                  },
+                  "Property": "Resolved Date"
+                }
+              },
+              "queryRef": "incident.Resolved Date",
+              "nativeQueryRef": "Resolved Date"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "incident"
+                  }
+                },
+                "Property": "Opened"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

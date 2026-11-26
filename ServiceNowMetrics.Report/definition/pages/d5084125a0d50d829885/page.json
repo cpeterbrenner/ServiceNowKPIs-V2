@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "d5084125a0d50d829885",
+  "displayName": "ServiceNow Performance Metrics",
+  "displayOption": "FitToPage",
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#FCFCFC'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "height": 900,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "5d946df81b283eed0290",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "incident"
+              }
+            },
+            "Property": "number"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "e78089342c2b3ce80407",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "incident"
+              }
+            },
+            "Property": "opened_at"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "fad87e757a0538e050a0",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "411562b70939503e0569",
+        "boundFilter": "5d946df81b283eed0290",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "incident"
+              }
+            },
+            "Property": "number"
+          }
+        }
+      },
+      {
+        "name": "1edcebd0a9ec4de6dabc",
+        "boundFilter": "e78089342c2b3ce80407",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "incident"
+              }
+            },
+            "Property": "opened_at"
+          }
+        }
+      }
+    ]
+  }
+}

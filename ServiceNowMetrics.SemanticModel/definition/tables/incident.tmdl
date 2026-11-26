@@ -1,0 +1,1208 @@
+table incident
+	lineageTag: 1308affd-de74-429a-b841-85061dd18a19
+
+	measure 'Total Incidents' = COUNTROWS(incident)
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000001
+
+	measure 'Total Resolved Incidents' =
+			CALCULATE(
+				COUNTROWS(incident),
+				FILTER(
+					incident,
+					NOT(ISBLANK(incident[resolved_at])) || NOT(ISBLANK(incident[closed_at]))
+				)
+			)
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000002
+
+	measure 'Active/Open Incidents' = CALCULATE(COUNTROWS(incident), incident[Is Active Open Incident] = TRUE(), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000003
+
+	measure 'Unassigned Incidents' = CALCULATE(COUNTROWS(incident), incident[active] = TRUE(), COALESCE(incident[assigned_to], "") = "", REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000004
+
+	measure 'Avg Age of Open Incidents (Days)' = AVERAGEX(FILTER(incident, incident[active] = TRUE()), DATEDIFF(incident[opened_at], TODAY(), DAY))
+		formatString: #,0.0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000005
+
+	measure 'Open Incidents < 30 Days' = CALCULATE(COUNTROWS(incident), incident[Is Open Lt 30 Days] = TRUE(), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000006
+
+	measure 'Open Incidents 30-60 Days' = CALCULATE(COUNTROWS(incident), incident[Is Open 30 To 60 Days] = TRUE(), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000007
+
+	measure 'Open Incidents > 60 Days' = CALCULATE(COUNTROWS(incident), incident[Is Open Gt 60 Days] = TRUE(), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000008
+
+	measure 'MTTR Business Hours' = DIVIDE(CALCULATE(AVERAGE(incident[business_duration]), NOT(ISBLANK(incident[resolved_at]))), 3600)
+		formatString: #,0.0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000009
+
+	measure 'MTTR Business Days' = DIVIDE(CALCULATE(AVERAGE(incident[business_duration]), NOT(ISBLANK(incident[resolved_at]))), 28800)
+		formatString: #,0.0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000010
+
+	measure 'Oldest Unassigned Incident (Days)' = CALCULATE(MAXX(FILTER(incident, incident[active] = TRUE() && COALESCE(incident[assigned_to], "") = ""), DATEDIFF(incident[opened_at], TODAY(), DAY)), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000011
+
+	measure 'Oldest Assigned Unresolved Incident (Days)' = CALCULATE(MAXX(FILTER(incident, incident[active] = TRUE() && COALESCE(incident[assigned_to], "") <> "" && ISBLANK(incident[resolved_at])), DATEDIFF(incident[opened_at], TODAY(), DAY)), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000012
+
+	measure 'Record Count' = COUNTROWS(incident)
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000013
+
+	measure 'Record Count Label' =
+			VAR RowCount =
+				CALCULATE(
+					COUNTROWS(incident),
+					ALLEXCEPT(
+						incident,
+						incident[active],
+						incident[Is Active Open Incident],
+						incident[Is Unassigned],
+						incident[Is Open Lt 30 Days],
+						incident[Is Open 30 To 60 Days],
+						incident[Is Open Gt 60 Days],
+						incident[Is Open 60 To 90 Days],
+						incident[Is Open Gt 90 Days]
+					)
+				)
+			RETURN
+				FORMAT(RowCount, "#,0") & " Record Count"
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000014
+
+	measure 'Rolling 12 Month Filter' =
+			VAR MinAllowed = EDATE(EOMONTH(TODAY(), -1), -11)
+			VAR MaxAllowed = EOMONTH(TODAY(), 0)
+			VAR CurrentMonth = SELECTEDVALUE(incident[Resolved Month])
+			RETURN
+				IF(
+					NOT(ISBLANK(CurrentMonth)) && CurrentMonth >= MinAllowed && CurrentMonth <= MaxAllowed,
+					1,
+					BLANK()
+				)
+		isHidden
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000015
+
+	measure 'MTTR Trend Line' =
+			VAR PointsTable =
+				SELECTCOLUMNS(
+					FILTER(
+						ADDCOLUMNS(
+							ALLSELECTED(incident[Resolved Month]),
+							"PointY", CALCULATE([MTTR Business Hours])
+						),
+						NOT(ISBLANK(incident[Resolved Month])) && NOT(ISBLANK([PointY]))
+					),
+					"PointX", VALUE(incident[Resolved Month]),
+					"PointY", [PointY]
+				)
+			VAR LineStats = LINESTX(PointsTable, [PointY], [PointX])
+			VAR Slope = MAXX(LineStats, [Slope1])
+			VAR Intercept = MAXX(LineStats, [Intercept])
+			VAR CurrentX = VALUE(SELECTEDVALUE(incident[Resolved Month]))
+			RETURN
+				IF(
+					COUNTROWS(PointsTable) >= 2 && NOT(ISBLANK(CurrentX)),
+					Intercept + Slope * CurrentX,
+					BLANK()
+				)
+		formatString: #,0.0
+		displayFolder: MTTR
+		lineageTag: c1a00001-0000-0000-0000-000000000016
+
+	measure 'Active/Open Border Color' =
+			VAR ActiveCount = [Active/Open Incidents]
+			VAR SlaRow =
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "open incidents"
+				)
+			VAR SlaBase = MAXX(SlaRow, SLA[SLA_Base])
+			VAR SlaCaution = MAXX(SlaRow, SLA[SLA_Caution])
+			VAR SlaWarn = MAXX(SlaRow, SLA[SLA_Warn])
+			RETURN
+				SWITCH(
+					TRUE(),
+					NOT(ISBLANK(SlaWarn)) && ActiveCount >= SlaWarn, "#C00000",
+					NOT(ISBLANK(SlaCaution)) && NOT(ISBLANK(SlaWarn)) && ActiveCount > SlaCaution && ActiveCount <= SlaWarn, "#FF6B35",
+					NOT(ISBLANK(SlaBase)) && NOT(ISBLANK(SlaCaution)) && ActiveCount > SlaBase && ActiveCount <= SlaCaution, "#FFC000",
+					NOT(ISBLANK(SlaBase)) && ActiveCount <= SlaBase, "#0B1635",
+					"#B3B3B3"
+				)
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000001b
+
+	measure 'Unassigned Border Color' =
+			VAR UnassignedCount = [Unassigned Incidents]
+			VAR SlaRow =
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "unassigned count"
+				)
+			VAR SlaBase = MAXX(SlaRow, SLA[SLA_Base])
+			VAR SlaCaution = MAXX(SlaRow, SLA[SLA_Caution])
+			VAR SlaWarn = MAXX(SlaRow, SLA[SLA_Warn])
+			RETURN
+				SWITCH(
+					TRUE(),
+					NOT(ISBLANK(SlaWarn)) && UnassignedCount >= SlaWarn, "#C00000",
+					NOT(ISBLANK(SlaCaution)) && NOT(ISBLANK(SlaWarn)) && UnassignedCount > SlaCaution && UnassignedCount <= SlaWarn, "#FF6B35",
+					NOT(ISBLANK(SlaBase)) && NOT(ISBLANK(SlaCaution)) && UnassignedCount > SlaBase && UnassignedCount <= SlaCaution, "#FFC000",
+					NOT(ISBLANK(SlaBase)) && UnassignedCount <= SlaBase, "#0B1635",
+					"#B3B3B3"
+				)
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000021
+
+	measure 'MTTR Business Hours Border Color' =
+			VAR MttrHours = [MTTR Business Hours]
+			VAR SlaRow =
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr hours"
+				)
+			VAR SlaBase = MAXX(SlaRow, SLA[SLA_Base])
+			VAR SlaCaution = MAXX(SlaRow, SLA[SLA_Caution])
+			VAR SlaWarn = MAXX(SlaRow, SLA[SLA_Warn])
+			VAR SlaCritical = MAXX(SlaRow, SLA[SLA_Critical])
+			RETURN
+				SWITCH(
+					TRUE(),
+					NOT(ISBLANK(SlaCritical)) && MttrHours >= SlaCritical, "#C00000",
+					NOT(ISBLANK(SlaWarn)) && MttrHours >= SlaWarn, "#FF6B35",
+					NOT(ISBLANK(SlaCaution)) && MttrHours >= SlaCaution, "#FFC000",
+					NOT(ISBLANK(SlaBase)) && MttrHours <= SlaBase, "#0B1635",
+					"#B3B3B3"
+				)
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000026
+
+	measure 'MTTR Business Days Border Color' =
+			VAR MttrDays = [MTTR Business Days]
+			VAR SlaRow =
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "overall mttr days"
+				)
+			VAR SlaBase = MAXX(SlaRow, SLA[SLA_Base])
+			VAR SlaCaution = MAXX(SlaRow, SLA[SLA_Caution])
+			VAR SlaWarn = MAXX(SlaRow, SLA[SLA_Warn])
+			VAR SlaCritical = MAXX(SlaRow, SLA[SLA_Critical])
+			RETURN
+				SWITCH(
+					TRUE(),
+					NOT(ISBLANK(SlaCritical)) && MttrDays >= SlaCritical, "#C00000",
+					NOT(ISBLANK(SlaWarn)) && MttrDays >= SlaWarn, "#FF6B35",
+					NOT(ISBLANK(SlaCaution)) && MttrDays >= SlaCaution, "#FFC000",
+					NOT(ISBLANK(SlaBase)) && MttrDays <= SlaBase, "#0B1635",
+					"#B3B3B3"
+				)
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-00000000002b
+
+	measure 'Oldest Unassigned Incident (Days) Border Color' =
+			VAR OldestDays = [Oldest Unassigned Incident (Days)]
+			VAR SlaRow =
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest unassigned days"
+				)
+			VAR SlaBase = MAXX(SlaRow, SLA[SLA_Base])
+			VAR SlaCaution = MAXX(SlaRow, SLA[SLA_Caution])
+			VAR SlaWarn = MAXX(SlaRow, SLA[SLA_Warn])
+			RETURN
+				SWITCH(
+					TRUE(),
+					NOT(ISBLANK(SlaWarn)) && OldestDays >= SlaWarn, "#C00000",
+					NOT(ISBLANK(SlaCaution)) && NOT(ISBLANK(SlaWarn)) && OldestDays > SlaCaution && OldestDays <= SlaWarn, "#FF6B35",
+					NOT(ISBLANK(SlaBase)) && NOT(ISBLANK(SlaCaution)) && OldestDays > SlaBase && OldestDays <= SlaCaution, "#FFC000",
+					NOT(ISBLANK(SlaBase)) && OldestDays <= SlaBase, "#0B1635",
+					"#B3B3B3"
+				)
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000030
+
+	measure 'Oldest Assigned Unresolved Incident (Days) Border Color' =
+			VAR OldestDays = [Oldest Assigned Unresolved Incident (Days)]
+			VAR SlaRow =
+				FILTER(
+					ALL(SLA),
+					SUBSTITUTE(LOWER(TRIM(SLA[SLA])), "_", " ") = "oldest assigned days"
+				)
+			VAR SlaBase = MAXX(SlaRow, SLA[SLA_Base])
+			VAR SlaCaution = MAXX(SlaRow, SLA[SLA_Caution])
+			VAR SlaWarn = MAXX(SlaRow, SLA[SLA_Warn])
+			RETURN
+				SWITCH(
+					TRUE(),
+					NOT(ISBLANK(SlaWarn)) && OldestDays >= SlaWarn, "#C00000",
+					NOT(ISBLANK(SlaCaution)) && NOT(ISBLANK(SlaWarn)) && OldestDays > SlaCaution && OldestDays <= SlaWarn, "#FF6B35",
+					NOT(ISBLANK(SlaBase)) && NOT(ISBLANK(SlaCaution)) && OldestDays > SlaBase && OldestDays <= SlaCaution, "#FFC000",
+					NOT(ISBLANK(SlaBase)) && OldestDays <= SlaBase, "#0B1635",
+					"#B3B3B3"
+				)
+		isHidden
+		lineageTag: c1a00001-0000-0000-0000-000000000035
+
+	measure 'MTTR Gauge Min' = 0
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000040
+
+	measure 'MTTR Gauge Max' = 20 + [Overall MTTR Hours SLA Critical]
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000041
+
+	measure 'MTTR Gauge Color' =
+			VAR MttrValue = [MTTR Business Hours]
+			VAR BaseVal = [Overall MTTR Hours SLA Base]
+			VAR CautionVal = [Overall MTTR Hours SLA Caution]
+			VAR WarnVal = [Overall MTTR Hours SLA Warn]
+			RETURN
+				SWITCH(
+					TRUE(),
+					MttrValue >= WarnVal, "#C00000",
+					MttrValue > CautionVal, "#FF6B35",
+					MttrValue > BaseVal, "#FFC000",
+					"#008000"
+				)
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000042
+
+	measure 'Open Incidents 60-90 Days' = CALCULATE(COUNTROWS(incident), incident[Is Open 60 To 90 Days] = TRUE(), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000043
+
+	measure 'Open Incidents > 90 Days' = CALCULATE(COUNTROWS(incident), incident[Is Open Gt 90 Days] = TRUE(), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000044
+
+	measure 'Open Items by Age' = CALCULATE(COUNTROWS(incident), incident[Is Active Open Incident] = TRUE(), REMOVEFILTERS(incident[opened_at]))
+		formatString: #,0
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000045
+
+	measure 'Open Age Bucket Color' =
+			SWITCH(
+				SELECTEDVALUE(incident[Open Age Bucket Order]),
+				1, "#008000",
+				2, "#FFC000",
+				3, "#FF6B35",
+				4, "#C00000",
+				"#B3B3B3"
+			)
+		displayFolder: KPIs
+		lineageTag: c1a00001-0000-0000-0000-000000000046
+
+	measure 'Incident Volume' = CALCULATE(COUNTROWS(incident), incident[Record Type] = "Incident")
+		formatString: #,0
+		displayFolder: Volume
+		lineageTag: c1a00001-0000-0000-0000-000000000050
+
+	measure 'Request Volume' = CALCULATE(COUNTROWS(incident), incident[Record Type] = "Request")
+		formatString: #,0
+		displayFolder: Volume
+		lineageTag: c1a00001-0000-0000-0000-000000000051
+
+	measure 'Rolling 12 Month Opened Filter' =
+			VAR MinAllowed = DATE(YEAR(EDATE(TODAY(), -11)), MONTH(EDATE(TODAY(), -11)), 1)
+			VAR MaxAllowed = EOMONTH(TODAY(), 0)
+			VAR CurrentMonth = SELECTEDVALUE(incident[Opened Month])
+			RETURN
+				IF(
+					NOT(ISBLANK(CurrentMonth)) && CurrentMonth >= MinAllowed && CurrentMonth <= MaxAllowed,
+					1,
+					BLANK()
+				)
+		isHidden
+		displayFolder: Volume
+		lineageTag: c1a00001-0000-0000-0000-000000000052
+
+	measure 'Incident Volume Trend' =
+			VAR MinAllowed = DATE(YEAR(EDATE(TODAY(), -11)), MONTH(EDATE(TODAY(), -11)), 1)
+			VAR MaxAllowed = EOMONTH(TODAY(), 0)
+			VAR PointsTable =
+				SELECTCOLUMNS(
+					FILTER(
+						ADDCOLUMNS(
+							CALCULATETABLE(VALUES(incident[Opened Month]), REMOVEFILTERS(incident[Opened Month])),
+							"PointY", CALCULATE([Incident Volume])
+						),
+						NOT(ISBLANK(incident[Opened Month]))
+							&& incident[Opened Month] >= MinAllowed
+							&& incident[Opened Month] <= MaxAllowed
+							&& NOT(ISBLANK([PointY]))
+					),
+					"PointX", VALUE(incident[Opened Month]),
+					"PointY", [PointY]
+				)
+			VAR LineStats = LINESTX(PointsTable, [PointY], [PointX])
+			VAR Slope = MAXX(LineStats, [Slope1])
+			VAR Intercept = MAXX(LineStats, [Intercept])
+			VAR CurrentX = VALUE(SELECTEDVALUE(incident[Opened Month]))
+			RETURN
+				IF(
+					COUNTROWS(PointsTable) >= 2 && NOT(ISBLANK(CurrentX)),
+					Intercept + Slope * CurrentX,
+					BLANK()
+				)
+		formatString: #,0
+		displayFolder: Volume
+		lineageTag: c1a00001-0000-0000-0000-000000000053
+
+	measure 'Request Volume Trend' =
+			VAR MinAllowed = DATE(YEAR(EDATE(TODAY(), -11)), MONTH(EDATE(TODAY(), -11)), 1)
+			VAR MaxAllowed = EOMONTH(TODAY(), 0)
+			VAR PointsTable =
+				SELECTCOLUMNS(
+					FILTER(
+						ADDCOLUMNS(
+							CALCULATETABLE(VALUES(incident[Opened Month]), REMOVEFILTERS(incident[Opened Month])),
+							"PointY", CALCULATE([Request Volume])
+						),
+						NOT(ISBLANK(incident[Opened Month]))
+							&& incident[Opened Month] >= MinAllowed
+							&& incident[Opened Month] <= MaxAllowed
+							&& NOT(ISBLANK([PointY]))
+					),
+					"PointX", VALUE(incident[Opened Month]),
+					"PointY", [PointY]
+				)
+			VAR LineStats = LINESTX(PointsTable, [PointY], [PointX])
+			VAR Slope = MAXX(LineStats, [Slope1])
+			VAR Intercept = MAXX(LineStats, [Intercept])
+			VAR CurrentX = VALUE(SELECTEDVALUE(incident[Opened Month]))
+			RETURN
+				IF(
+					COUNTROWS(PointsTable) >= 2 && NOT(ISBLANK(CurrentX)),
+					Intercept + Slope * CurrentX,
+					BLANK()
+				)
+		formatString: #,0
+		displayFolder: Volume
+		lineageTag: c1a00001-0000-0000-0000-000000000054
+
+	column number
+		dataType: string
+		lineageTag: 25345b57-0173-4d84-aef8-c38778991057
+		summarizeBy: none
+		sourceColumn: number
+
+		annotation SummarizationSetBy = Automatic
+
+	column opened_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ab30c8e6-82d0-4ccf-826f-af92d029a75f
+		summarizeBy: none
+		sourceColumn: opened_at
+
+		variation Variation
+			isDefault
+			relationship: 92553123-67d0-4288-8431-e99a16aa77ba
+			defaultHierarchy: LocalDateTable_2bf18077-204a-4416-8a3b-cc86a5b0cebc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_state
+		dataType: string
+		lineageTag: 9f2b8504-7206-46eb-a473-a4bc2df38cde
+		summarizeBy: none
+		sourceColumn: incident_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: 110635cc-96ca-46cb-a57e-5095a0a9d732
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column short_description
+		dataType: string
+		lineageTag: 9dfdaf98-4f9a-4c59-a4c7-91208b182f61
+		summarizeBy: none
+		sourceColumn: short_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column opened_by
+		dataType: string
+		lineageTag: af3268f5-c1ac-47c4-9a9c-f9240ec6aa7b
+		summarizeBy: none
+		sourceColumn: opened_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column caller_id
+		dataType: string
+		lineageTag: 813490fc-5f0e-40cd-b5b4-2f1bc001b546
+		summarizeBy: none
+		sourceColumn: caller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column assignment_group
+		dataType: string
+		lineageTag: 674ad2e4-d0a3-4c10-ab29-921163c2eb60
+		summarizeBy: none
+		sourceColumn: assignment_group
+
+		annotation SummarizationSetBy = Automatic
+
+	column active
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: a4775ca4-d705-4561-937c-a105598c9a25
+		summarizeBy: none
+		sourceColumn: active
+
+		annotation SummarizationSetBy = Automatic
+
+	column assigned_to
+		dataType: string
+		lineageTag: fb553d44-26c7-4172-890c-ea1564018c99
+		summarizeBy: none
+		sourceColumn: assigned_to
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_duration
+		dataType: int64
+		formatString: 0
+		lineageTag: 17af9a52-71c2-4ec7-b26e-d940f1f098c7
+		summarizeBy: sum
+		sourceColumn: calendar_duration
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_stc
+		dataType: string
+		lineageTag: 94739e0d-8834-4770-8b32-1dad84b2fb13
+		summarizeBy: none
+		sourceColumn: business_stc
+
+		annotation SummarizationSetBy = Automatic
+
+	column reopened_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 31a19e97-029b-4a88-99f6-5334902fa959
+		summarizeBy: none
+		sourceColumn: reopened_time
+
+		variation Variation
+			isDefault
+			relationship: 0f63794b-1ecb-4071-a42e-a3a6012e1427
+			defaultHierarchy: LocalDateTable_acd50beb-d537-45fc-b08f-437ca3a6d8a3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column reopened_by
+		dataType: string
+		lineageTag: 848d1d2a-b62e-46a1-97ca-29e356daf02d
+		summarizeBy: none
+		sourceColumn: reopened_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_stc
+		dataType: string
+		lineageTag: 95b8aaa0-b22b-4aae-b0a8-2f93a03bbee6
+		summarizeBy: none
+		sourceColumn: calendar_stc
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_time_reported
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 8b795b98-962b-440d-86ad-2e9b6968ec22
+		summarizeBy: none
+		sourceColumn: u_time_reported
+
+		annotation SummarizationSetBy = Automatic
+
+	column activity_due
+		dataType: string
+		lineageTag: 2bd5928e-284f-45f6-b133-57d417737e54
+		summarizeBy: none
+		sourceColumn: activity_due
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_application
+		dataType: string
+		lineageTag: d2493d39-de4e-4fe9-bd93-018782885258
+		summarizeBy: none
+		sourceColumn: u_application
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_duration
+		dataType: int64
+		formatString: 0
+		lineageTag: 80db9e2b-4dc5-4cfe-b655-c75246319d3e
+		summarizeBy: sum
+		sourceColumn: business_duration
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_business_process
+		dataType: string
+		lineageTag: 9b4ec2dc-71e4-45d3-ab82-479f7a770918
+		summarizeBy: none
+		sourceColumn: u_business_process
+
+		annotation SummarizationSetBy = Automatic
+
+	column contact_type
+		dataType: string
+		lineageTag: f6e08b46-3969-4b95-8c7f-1e6c7ad1f3e7
+		summarizeBy: none
+		sourceColumn: contact_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column child_incidents
+		dataType: int64
+		formatString: 0
+		lineageTag: 059c3f7e-e41c-40df-a6d2-28b6b71abc4e
+		summarizeBy: sum
+		sourceColumn: child_incidents
+
+		annotation SummarizationSetBy = Automatic
+
+	column close_code
+		dataType: string
+		lineageTag: aef7a14e-4d9e-436f-a5be-33f07b80049d
+		summarizeBy: none
+		sourceColumn: close_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column closed_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 391c13f7-1017-42e0-9411-6fe8dce327a6
+		summarizeBy: none
+		sourceColumn: closed_at
+
+		variation Variation
+			isDefault
+			relationship: 14f3c2db-8857-4484-a9a9-62e54c302f1c
+			defaultHierarchy: LocalDateTable_f80d39ac-db0b-4e91-bc41-f57577e1b626.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column closed_by
+		dataType: string
+		lineageTag: 80b39c75-663f-4789-ad0c-0d34dadde13a
+		summarizeBy: none
+		sourceColumn: closed_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column company
+		dataType: string
+		lineageTag: 0413ef26-0684-4630-a398-1a43eda13546
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_component
+		dataType: string
+		lineageTag: a8b4d3f7-0283-41da-a5cc-522f7355e538
+		summarizeBy: none
+		sourceColumn: u_component
+
+		annotation SummarizationSetBy = Automatic
+
+	column cmdb_ci
+		dataType: string
+		lineageTag: 8aded9a0-5d9c-4759-b9e7-1e4d34be82c9
+		summarizeBy: none
+		sourceColumn: cmdb_ci
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_mi_contact_person
+		dataType: string
+		lineageTag: 3a6a2b4c-8c9e-4325-aadd-b1e4f48c5d6d
+		summarizeBy: none
+		sourceColumn: u_mi_contact_person
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_created_on
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4fda7cfe-16d6-493c-a445-d5243242f1c3
+		summarizeBy: none
+		sourceColumn: sys_created_on
+
+		variation Variation
+			isDefault
+			relationship: 863c1ec3-701f-4abb-9427-f5d1253016ce
+			defaultHierarchy: LocalDateTable_f7f89716-e84c-4ba0-94f2-0145cb39f75f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_created_by
+		dataType: string
+		lineageTag: a18ed276-7731-49b8-88d7-bcdebabeda78
+		summarizeBy: none
+		sourceColumn: sys_created_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_division
+		dataType: string
+		lineageTag: 4af67dd4-2af9-4039-872f-83138d1f8b3d
+		summarizeBy: none
+		sourceColumn: u_division
+
+		annotation SummarizationSetBy = Automatic
+
+	column task_effective_number
+		dataType: string
+		lineageTag: 2b124d23-a6f1-451a-aecb-26cbfea7b32a
+		summarizeBy: none
+		sourceColumn: task_effective_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column reassignment_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 3fa6de4b-9922-46ec-a634-590fbfefa247
+		summarizeBy: sum
+		sourceColumn: reassignment_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_mi_users_impacted
+		dataType: string
+		lineageTag: 4bcb6a80-373d-465d-a548-535bd163da6e
+		summarizeBy: none
+		sourceColumn: u_mi_users_impacted
+
+		annotation SummarizationSetBy = Automatic
+
+	column impact
+		dataType: string
+		lineageTag: bfc01cda-8e32-48b0-8b45-68ec4f749240
+		summarizeBy: none
+		sourceColumn: impact
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_incident_related_to_company
+		dataType: string
+		lineageTag: 1bb76be1-1f6f-42c6-96a3-d47915c5e4bf
+		summarizeBy: none
+		sourceColumn: u_incident_related_to_company
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_mi_business_critical
+		dataType: string
+		lineageTag: 2a610797-da13-4039-baa2-0cb440de6edf
+		summarizeBy: none
+		sourceColumn: u_mi_business_critical
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_mi_production_environment_affected
+		dataType: string
+		lineageTag: aad157f4-49cb-4d50-8db1-a4591e195022
+		summarizeBy: none
+		sourceColumn: u_mi_production_environment_affected
+
+		annotation SummarizationSetBy = Automatic
+
+	column location
+		dataType: string
+		lineageTag: d25f45ed-d115-410f-af4b-977e015e5cd4
+		summarizeBy: none
+		sourceColumn: location
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_note
+		dataType: string
+		lineageTag: 8cc4a51d-5e63-4012-b91e-6af96c1f4d21
+		summarizeBy: none
+		sourceColumn: u_note
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_offering_reassignment_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 5246d858-bdd2-41e4-88af-51275d43a499
+		summarizeBy: sum
+		sourceColumn: u_offering_reassignment_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_rpt_open_duration_test
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b2c6152-797c-498f-8943-3222fc8f9f49
+		summarizeBy: sum
+		sourceColumn: u_rpt_open_duration_test
+
+		annotation SummarizationSetBy = Automatic
+
+	column parent_incident
+		dataType: string
+		lineageTag: 5d32fbf2-a59f-466a-8418-c402ad5df783
+		summarizeBy: none
+		sourceColumn: parent_incident
+
+		annotation SummarizationSetBy = Automatic
+
+	column priority
+		dataType: string
+		lineageTag: 7ec48b12-f76a-46ec-81c8-70f7147b028d
+		summarizeBy: none
+		sourceColumn: priority
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_received_from
+		dataType: string
+		lineageTag: dd943d0b-a530-4051-bcfc-52f5c5f7d003
+		summarizeBy: none
+		sourceColumn: u_received_from
+
+		annotation SummarizationSetBy = Automatic
+
+	column reopen_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 68ab1a80-822d-4be6-8a79-486341f98503
+		summarizeBy: sum
+		sourceColumn: reopen_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column resolved_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: da134e9d-9860-4efc-9ce5-5a6261532b7e
+		summarizeBy: none
+		sourceColumn: resolved_at
+
+		variation Variation
+			isDefault
+			relationship: d52adce3-a747-4ec9-a261-9fb996e55cea
+			defaultHierarchy: LocalDateTable_2784dd57-c792-40c4-942c-0b3e9d205963.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column resolved_by
+		dataType: string
+		lineageTag: 13bb1baa-881d-4699-acf0-664291dda8a5
+		summarizeBy: none
+		sourceColumn: resolved_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_service
+		dataType: string
+		lineageTag: c12a835b-82eb-4a53-9f20-113856c8ff7f
+		summarizeBy: none
+		sourceColumn: business_service
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_offering
+		dataType: string
+		lineageTag: f7c78f4a-66e2-4c85-9827-499e5fc530b5
+		summarizeBy: none
+		sourceColumn: service_offering
+
+		annotation SummarizationSetBy = Automatic
+
+	column severity
+		dataType: string
+		lineageTag: 527610c1-d06d-450c-8162-3e6e22350e37
+		summarizeBy: none
+		sourceColumn: severity
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: 40e9b418-6595-44cf-ac4f-3324c1e50446
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column subcategory
+		dataType: string
+		lineageTag: 9410e9bf-4465-483c-b71a-1e24d2839ff9
+		summarizeBy: none
+		sourceColumn: subcategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_service
+		dataType: string
+		lineageTag: e59cb685-559a-4c0a-82df-1a2db4ee5fb2
+		summarizeBy: none
+		sourceColumn: u_service
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_svc_comp
+		dataType: string
+		lineageTag: 31c4facd-6aff-45fb-8078-51405e6adf4c
+		summarizeBy: none
+		sourceColumn: u_svc_comp
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_updated_on
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: bb725c75-949e-4d93-b71a-e8f0832dad2c
+		summarizeBy: none
+		sourceColumn: sys_updated_on
+
+		variation Variation
+			isDefault
+			relationship: ba9c0a80-e253-4745-8930-7003687a2948
+			defaultHierarchy: LocalDateTable_5550aa55-60e2-467e-96d3-bc141996e53a.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_updated_by
+		dataType: string
+		lineageTag: d2f1f20b-0013-4622-86b1-7d4a65686af3
+		summarizeBy: none
+		sourceColumn: sys_updated_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_mod_count
+		dataType: int64
+		formatString: 0
+		lineageTag: e095adb7-23f3-449e-8935-e8acae5981a9
+		summarizeBy: sum
+		sourceColumn: sys_mod_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column upon_approval
+		dataType: string
+		lineageTag: 28575725-507b-40b3-befc-0441993dca20
+		summarizeBy: none
+		sourceColumn: upon_approval
+
+		annotation SummarizationSetBy = Automatic
+
+	column upon_reject
+		dataType: string
+		lineageTag: f2d513e8-797d-410b-982e-cb1eefc8dbf3
+		summarizeBy: none
+		sourceColumn: upon_reject
+
+		annotation SummarizationSetBy = Automatic
+
+	column urgency
+		dataType: string
+		lineageTag: 0ae0a774-b3bb-4ebc-9e00-fca39f2596c7
+		summarizeBy: none
+		sourceColumn: urgency
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Short Description (90)' = LEFT(incident[short_description], 90)
+		dataType: string
+		lineageTag: c1a00002-0000-0000-0000-000000000001
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Incident = incident[number]
+		dataType: string
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000002
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Opened = incident[opened_at]
+		dataType: dateTime
+		formatString: General Date
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000003
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: e0a7c0b4-b2bf-4430-93f4-3a010e00a531
+			defaultHierarchy: LocalDateTable_524b4fbd-fbe8-42cc-9ccd-4a80095371f8.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opened By' = incident[opened_by]
+		dataType: string
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000004
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Assigned To' = incident[assigned_to]
+		dataType: string
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000005
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Resolved By' = incident[resolved_by]
+		dataType: string
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000006
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Resolved Date' = incident[resolved_at]
+		dataType: dateTime
+		formatString: General Date
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000007
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 28b4401c-159c-44bc-bbe2-1b9a8ccb3a5d
+			defaultHierarchy: LocalDateTable_e63d7edc-fe18-4b0c-94ed-bc930cea323e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Unassigned' = COALESCE(incident[assigned_to], "") = ""
+		dataType: boolean
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000008
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Open Lt 30 Days' = incident[Is Active Open Incident] = TRUE() && DATEDIFF(incident[opened_at], TODAY(), DAY) < 30
+		dataType: boolean
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000009
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Open 30 To 60 Days' = incident[Is Active Open Incident] = TRUE() && DATEDIFF(incident[opened_at], TODAY(), DAY) >= 30 && DATEDIFF(incident[opened_at], TODAY(), DAY) <= 60
+		dataType: boolean
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000010
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Open Gt 60 Days' = incident[Is Active Open Incident] = TRUE() && DATEDIFF(incident[opened_at], TODAY(), DAY) > 60
+		dataType: boolean
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000011
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Resolved Month' = IF(NOT(ISBLANK(incident[resolved_at])), DATE(YEAR(incident[resolved_at]), MONTH(incident[resolved_at]), 1), BLANK())
+		dataType: dateTime
+		formatString: MMM yyyy
+		displayFolder: MTTR
+		lineageTag: c1a00002-0000-0000-0000-000000000012
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 5bbb4b65-3c4f-4159-92ac-6791ee05918e
+			defaultHierarchy: LocalDateTable_3c23e55c-6586-4c4d-a7f4-e40564adeaee.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Active Open Incident' =
+			incident[active] = TRUE()
+			&& NOT(incident[state] IN {"Resolved", "Closed"})
+			&& ISBLANK(incident[resolved_at])
+			&& ISBLANK(incident[closed_at])
+		dataType: boolean
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000013
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Closed Ticket' =
+			incident[active] = FALSE()
+			|| incident[incident_state] IN {"Resolved", "Closed"}
+		dataType: boolean
+		displayFolder: Productivity
+		lineageTag: c1a00002-0000-0000-0000-000000000014
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Reopened Date' = incident[reopened_time]
+		dataType: dateTime
+		formatString: General Date
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000015
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column parent
+		dataType: string
+		lineageTag: 08f8ad22-35c1-4eb0-a2c7-49fe468b9380
+		summarizeBy: none
+		sourceColumn: parent
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Open 60 To 90 Days' = incident[Is Active Open Incident] = TRUE() && DATEDIFF(incident[opened_at], TODAY(), DAY) > 60 && DATEDIFF(incident[opened_at], TODAY(), DAY) <= 90
+		dataType: boolean
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000020
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Open Gt 90 Days' = incident[Is Active Open Incident] = TRUE() && DATEDIFF(incident[opened_at], TODAY(), DAY) > 90
+		dataType: boolean
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000021
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Open Age Bucket' =
+			IF(
+				incident[Is Active Open Incident] = TRUE(),
+				SWITCH(
+					TRUE(),
+					DATEDIFF(incident[opened_at], TODAY(), DAY) < 30, "0 - 30 Days",
+					DATEDIFF(incident[opened_at], TODAY(), DAY) <= 60, "30 - 60 Days",
+					DATEDIFF(incident[opened_at], TODAY(), DAY) <= 90, "60 - 90 Days",
+					"Over 90 Days"
+				)
+			)
+		dataType: string
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000022
+		summarizeBy: none
+		sortByColumn: 'Open Age Bucket Order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Open Age Bucket Order' =
+			IF(
+				incident[Is Active Open Incident] = TRUE(),
+				SWITCH(
+					TRUE(),
+					DATEDIFF(incident[opened_at], TODAY(), DAY) < 30, 1,
+					DATEDIFF(incident[opened_at], TODAY(), DAY) <= 60, 2,
+					DATEDIFF(incident[opened_at], TODAY(), DAY) <= 90, 3,
+					4
+				)
+			)
+		dataType: int64
+		displayFolder: Active Incidents
+		lineageTag: c1a00002-0000-0000-0000-000000000023
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ticket Channel' =
+			VAR ContactType = UPPER(TRIM(COALESCE(incident[contact_type], "")))
+			RETURN
+				SWITCH(
+					TRUE(),
+					ContactType = "WALK-IN", "Walk in",
+					ContactType = "SELF-SERVICE", "Self Service",
+					ContactType = "EMAIL", "Email",
+					ContactType = "PHONE", "Phone",
+					"Other"
+				)
+		dataType: string
+		displayFolder: KPIs
+		lineageTag: c1a00002-0000-0000-0000-000000000040
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Record Type' = IF(LEFT(incident[number], 4) = "RITM", "Request", "Incident")
+		dataType: string
+		displayFolder: Volume
+		lineageTag: c1a00002-0000-0000-0000-000000000050
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opened Month' = IF(NOT(ISBLANK(incident[opened_at])), DATE(YEAR(incident[opened_at]), MONTH(incident[opened_at]), 1), BLANK())
+		dataType: dateTime
+		formatString: MMM yyyy
+		displayFolder: Volume
+		lineageTag: c1a00002-0000-0000-0000-000000000051
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition incident = m
+		mode: import
+		source =
+				let
+				  Source = Csv.Document(File.Contents("C:\Users\pebren\Development\ServiceNow-KPI\Data\incident.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				  #"Promoted headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				  #"Changed column type" = Table.TransformColumnTypes(#"Promoted headers", {{"number", type text}, {"opened_at", type datetime}, {"incident_state", type text}, {"category", type text}, {"short_description", type text}, {"opened_by", type text}, {"caller_id", type text}, {"assignment_group", type text}, {"active", type logical}, {"assigned_to", type text}, {"calendar_duration", Int64.Type}, {"reopened_time", type datetime}, {"reopened_by", type text}, {"u_time_reported", type logical}, {"activity_due", type text}, {"u_application", type text}, {"business_duration", Int64.Type}, {"contact_type", type text}, {"child_incidents", Int64.Type}, {"close_code", type text}, {"closed_at", type datetime}, {"closed_by", type text}, {"company", type text}, {"u_component", type text}, {"sys_created_on", type datetime}, {"sys_created_by", type text}, {"u_division", type text}, {"task_effective_number", type text}, {"reassignment_count", Int64.Type}, {"impact", type text}, {"u_incident_related_to_company", type text}, {"location", type text}, {"u_note", type text}, {"u_offering_reassignment_count", Int64.Type}, {"u_rpt_open_duration_test", Int64.Type}, {"parent_incident", type text}, {"priority", type text}, {"u_received_from", type text}, {"reopen_count", Int64.Type}, {"resolved_at", type datetime}, {"resolved_by", type text}, {"business_service", type text}, {"service_offering", type text}, {"severity", type text}, {"state", type text}, {"subcategory", type text}, {"u_service", type text}, {"u_svc_comp", type text}, {"sys_updated_on", type datetime}, {"sys_updated_by", type text}, {"sys_mod_count", Int64.Type}, {"upon_approval", type text}, {"upon_reject", type text}, {"urgency", type text}}, "en-US"),
+				  #"Excluded Guest Guest" = Table.SelectRows(#"Changed column type", each [opened_by] <> "Guest Guest"),
+				  #"Appended Requested Items" = Table.Combine({#"Excluded Guest Guest", RequestedItems})
+				in
+				  #"Appended Requested Items"
+
+	annotation PBI_ResultType = Table
+

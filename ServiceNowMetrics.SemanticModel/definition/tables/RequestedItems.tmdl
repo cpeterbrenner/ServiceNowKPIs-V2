@@ -1,0 +1,563 @@
+table RequestedItems
+	lineageTag: c2a10000-0000-0000-0000-000000000000
+
+	column number
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000001
+		summarizeBy: none
+		sourceColumn: number
+
+		annotation SummarizationSetBy = Automatic
+
+	column opened_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c2a10000-0000-0000-0000-000000000002
+		summarizeBy: none
+		sourceColumn: opened_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_state
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000003
+		summarizeBy: none
+		sourceColumn: incident_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000004
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column short_description
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000005
+		summarizeBy: none
+		sourceColumn: short_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column opened_by
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000006
+		summarizeBy: none
+		sourceColumn: opened_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column caller_id
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000007
+		summarizeBy: none
+		sourceColumn: caller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column assignment_group
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000008
+		summarizeBy: none
+		sourceColumn: assignment_group
+
+		annotation SummarizationSetBy = Automatic
+
+	column active
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c2a10000-0000-0000-0000-000000000009
+		summarizeBy: none
+		sourceColumn: active
+
+		annotation SummarizationSetBy = Automatic
+
+	column assigned_to
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000000a
+		summarizeBy: none
+		sourceColumn: assigned_to
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_duration
+		dataType: int64
+		formatString: 0
+		lineageTag: c2a10000-0000-0000-0000-00000000000b
+		summarizeBy: sum
+		sourceColumn: calendar_duration
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_stc
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000000c
+		summarizeBy: none
+		sourceColumn: business_stc
+
+		annotation SummarizationSetBy = Automatic
+
+	column reopened_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c2a10000-0000-0000-0000-00000000000d
+		summarizeBy: none
+		sourceColumn: reopened_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column reopened_by
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000000e
+		summarizeBy: none
+		sourceColumn: reopened_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_stc
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000000f
+		summarizeBy: none
+		sourceColumn: calendar_stc
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_time_reported
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c2a10000-0000-0000-0000-000000000010
+		summarizeBy: none
+		sourceColumn: u_time_reported
+
+		annotation SummarizationSetBy = Automatic
+
+	column activity_due
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000011
+		summarizeBy: none
+		sourceColumn: activity_due
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_application
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000012
+		summarizeBy: none
+		sourceColumn: u_application
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_duration
+		dataType: int64
+		formatString: 0
+		lineageTag: c2a10000-0000-0000-0000-000000000013
+		summarizeBy: sum
+		sourceColumn: business_duration
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_business_process
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000014
+		summarizeBy: none
+		sourceColumn: u_business_process
+
+		annotation SummarizationSetBy = Automatic
+
+	column contact_type
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000015
+		summarizeBy: none
+		sourceColumn: contact_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column child_incidents
+		dataType: int64
+		formatString: 0
+		lineageTag: c2a10000-0000-0000-0000-000000000016
+		summarizeBy: sum
+		sourceColumn: child_incidents
+
+		annotation SummarizationSetBy = Automatic
+
+	column close_code
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000017
+		summarizeBy: none
+		sourceColumn: close_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column closed_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c2a10000-0000-0000-0000-000000000018
+		summarizeBy: none
+		sourceColumn: closed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column closed_by
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000019
+		summarizeBy: none
+		sourceColumn: closed_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column company
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000001a
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_component
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000001b
+		summarizeBy: none
+		sourceColumn: u_component
+
+		annotation SummarizationSetBy = Automatic
+
+	column cmdb_ci
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000001c
+		summarizeBy: none
+		sourceColumn: cmdb_ci
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_mi_contact_person
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000001d
+		summarizeBy: none
+		sourceColumn: u_mi_contact_person
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_created_on
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c2a10000-0000-0000-0000-00000000001e
+		summarizeBy: none
+		sourceColumn: sys_created_on
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_created_by
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000001f
+		summarizeBy: none
+		sourceColumn: sys_created_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_division
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000020
+		summarizeBy: none
+		sourceColumn: u_division
+
+		annotation SummarizationSetBy = Automatic
+
+	column task_effective_number
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000021
+		summarizeBy: none
+		sourceColumn: task_effective_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column reassignment_count
+		dataType: int64
+		formatString: 0
+		lineageTag: c2a10000-0000-0000-0000-000000000022
+		summarizeBy: sum
+		sourceColumn: reassignment_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_mi_users_impacted
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000023
+		summarizeBy: none
+		sourceColumn: u_mi_users_impacted
+
+		annotation SummarizationSetBy = Automatic
+
+	column impact
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000024
+		summarizeBy: none
+		sourceColumn: impact
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_incident_related_to_company
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000025
+		summarizeBy: none
+		sourceColumn: u_incident_related_to_company
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_mi_business_critical
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000026
+		summarizeBy: none
+		sourceColumn: u_mi_business_critical
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_mi_production_environment_affected
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000027
+		summarizeBy: none
+		sourceColumn: u_mi_production_environment_affected
+
+		annotation SummarizationSetBy = Automatic
+
+	column location
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000028
+		summarizeBy: none
+		sourceColumn: location
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_note
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000029
+		summarizeBy: none
+		sourceColumn: u_note
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_offering_reassignment_count
+		dataType: int64
+		formatString: 0
+		lineageTag: c2a10000-0000-0000-0000-00000000002a
+		summarizeBy: sum
+		sourceColumn: u_offering_reassignment_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_rpt_open_duration_test
+		dataType: int64
+		formatString: 0
+		lineageTag: c2a10000-0000-0000-0000-00000000002b
+		summarizeBy: sum
+		sourceColumn: u_rpt_open_duration_test
+
+		annotation SummarizationSetBy = Automatic
+
+	column parent_incident
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000002c
+		summarizeBy: none
+		sourceColumn: parent_incident
+
+		annotation SummarizationSetBy = Automatic
+
+	column parent
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000003f
+		summarizeBy: none
+		sourceColumn: parent
+
+		annotation SummarizationSetBy = Automatic
+
+	column priority
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000002d
+		summarizeBy: none
+		sourceColumn: priority
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_received_from
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000002e
+		summarizeBy: none
+		sourceColumn: u_received_from
+
+		annotation SummarizationSetBy = Automatic
+
+	column reopen_count
+		dataType: int64
+		formatString: 0
+		lineageTag: c2a10000-0000-0000-0000-00000000002f
+		summarizeBy: sum
+		sourceColumn: reopen_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column resolved_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c2a10000-0000-0000-0000-000000000030
+		summarizeBy: none
+		sourceColumn: resolved_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column resolved_by
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000031
+		summarizeBy: none
+		sourceColumn: resolved_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_service
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000032
+		summarizeBy: none
+		sourceColumn: business_service
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_offering
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000033
+		summarizeBy: none
+		sourceColumn: service_offering
+
+		annotation SummarizationSetBy = Automatic
+
+	column severity
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000034
+		summarizeBy: none
+		sourceColumn: severity
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000035
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column subcategory
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000036
+		summarizeBy: none
+		sourceColumn: subcategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_service
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000037
+		summarizeBy: none
+		sourceColumn: u_service
+
+		annotation SummarizationSetBy = Automatic
+
+	column u_svc_comp
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-000000000038
+		summarizeBy: none
+		sourceColumn: u_svc_comp
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_updated_on
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c2a10000-0000-0000-0000-000000000039
+		summarizeBy: none
+		sourceColumn: sys_updated_on
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_updated_by
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000003a
+		summarizeBy: none
+		sourceColumn: sys_updated_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column sys_mod_count
+		dataType: int64
+		formatString: 0
+		lineageTag: c2a10000-0000-0000-0000-00000000003b
+		summarizeBy: sum
+		sourceColumn: sys_mod_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column upon_approval
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000003c
+		summarizeBy: none
+		sourceColumn: upon_approval
+
+		annotation SummarizationSetBy = Automatic
+
+	column upon_reject
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000003d
+		summarizeBy: none
+		sourceColumn: upon_reject
+
+		annotation SummarizationSetBy = Automatic
+
+	column urgency
+		dataType: string
+		lineageTag: c2a10000-0000-0000-0000-00000000003e
+		summarizeBy: none
+		sourceColumn: urgency
+
+		annotation SummarizationSetBy = Automatic
+
+	partition RequestedItems = m
+		mode: import
+		source =
+				let
+				  ExpectedColumns = {
+				    "number", "opened_at", "incident_state", "category", "short_description",
+				    "opened_by", "caller_id", "assignment_group", "active", "assigned_to",
+				    "calendar_duration", "business_stc", "reopened_time", "reopened_by", "calendar_stc",
+				    "u_time_reported", "activity_due", "u_application", "business_duration", "u_business_process",
+				    "contact_type", "child_incidents", "close_code", "closed_at", "closed_by",
+				    "company", "u_component", "cmdb_ci", "u_mi_contact_person", "sys_created_on",
+				    "sys_created_by", "u_division", "task_effective_number", "reassignment_count", "u_mi_users_impacted",
+				    "impact", "u_incident_related_to_company", "u_mi_business_critical", "u_mi_production_environment_affected", "location",
+				    "u_note", "u_offering_reassignment_count", "u_rpt_open_duration_test", "parent_incident", "parent",
+				    "priority", "u_received_from", "reopen_count", "resolved_at", "resolved_by", "business_service",
+				    "service_offering", "severity", "state", "subcategory", "u_service",
+				    "u_svc_comp", "sys_updated_on", "sys_updated_by", "sys_mod_count", "upon_approval",
+				    "upon_reject", "urgency"
+				  },
+				  TypeMap = {
+				    {"opened_at", type datetime}, {"active", type logical}, {"calendar_duration", Int64.Type},
+				    {"reopened_time", type datetime}, {"u_time_reported", type logical}, {"business_duration", Int64.Type},
+				    {"child_incidents", Int64.Type}, {"closed_at", type datetime}, {"sys_created_on", type datetime},
+				    {"reassignment_count", Int64.Type}, {"u_offering_reassignment_count", Int64.Type},
+				    {"u_rpt_open_duration_test", Int64.Type}, {"reopen_count", Int64.Type}, {"resolved_at", type datetime},
+				    {"sys_updated_on", type datetime}, {"sys_mod_count", Int64.Type}
+				  },
+				  Source = Csv.Document(File.Contents("C:\Users\pebren\Development\ServiceNow-KPI\Data\sc_req_item.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				  #"Promoted headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				  MissingColumns = List.Difference(ExpectedColumns, Table.ColumnNames(#"Promoted headers")),
+				  #"Added missing columns" = List.Accumulate(MissingColumns, #"Promoted headers", (state, col) => Table.AddColumn(state, col, each null, type text)),
+				  #"Kept export columns" = Table.SelectColumns(#"Added missing columns", ExpectedColumns),
+				  ExistingTypeMap = List.Select(TypeMap, each List.Contains(Table.ColumnNames(#"Kept export columns"), _{0})),
+				  #"Changed column type" = Table.TransformColumnTypes(#"Kept export columns", ExistingTypeMap),
+				  #"Excluded Guest Guest" = Table.SelectRows(#"Changed column type", each [opened_by] <> "Guest Guest")
+				in
+				  #"Excluded Guest Guest"
+
+	annotation PBI_ResultType = Table
+

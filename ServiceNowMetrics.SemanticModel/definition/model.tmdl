@@ -1,0 +1,32 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["incident","SLA","ProductivityStaff","RequestedItems","TicketChannel"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table incident
+ref table DateTableTemplate_a8f0bfc6-7317-4796-a01b-109e1e38f0db
+ref table LocalDateTable_2bf18077-204a-4416-8a3b-cc86a5b0cebc
+ref table LocalDateTable_acd50beb-d537-45fc-b08f-437ca3a6d8a3
+ref table LocalDateTable_f80d39ac-db0b-4e91-bc41-f57577e1b626
+ref table LocalDateTable_f7f89716-e84c-4ba0-94f2-0145cb39f75f
+ref table LocalDateTable_2784dd57-c792-40c4-942c-0b3e9d205963
+ref table LocalDateTable_5550aa55-60e2-467e-96d3-bc141996e53a
+ref table SLA
+ref table LocalDateTable_524b4fbd-fbe8-42cc-9ccd-4a80095371f8
+ref table LocalDateTable_e63d7edc-fe18-4b0c-94ed-bc930cea323e
+ref table LocalDateTable_3c23e55c-6586-4c4d-a7f4-e40564adeaee
+ref table ProductivityStaff
+ref table RequestedItems
+ref table TicketChannel
+
+ref cultureInfo en-US
+
