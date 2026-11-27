@@ -1,42 +1,45 @@
 <#
 .SYNOPSIS
-    Extracts incidents from ServiceNow to CSV by opening the export URL in Google Chrome.
+    Extracts incidents from ServiceNow to CSV (Chrome session), then upserts into
+    local Delta Lake / Parquet for Power BI.
 
 .DESCRIPTION
-    Builds a ServiceNow list-export URL that filters incidents by assignment group
-    and opened date (last 24 calendar months from the first day of the current month,
-    computed at run time). No state/active filter so every incident in that window
-    is included regardless of status.
-    then opens it in Google Chrome. The export endpoint returns 401 if Chrome has
-    no active ServiceNow session (it does not redirect to SSO), so the script
-    first opens the Service Portal to let you sign in, waits for confirmation,
-    then opens the export URL. Chrome downloads to your default Downloads folder
-    using the signed-in session; the script then waits for that download to
-    finish and moves the resulting CSV into the folder given by -DownloadDir
-    (default C:\Users\pebren\Development\ServiceNow-KPI\Data).
+    Daily mode (default) filters:
+      - Assignment Group = AAES - North America - User IT Workplace (configurable)
+      - Updated (sys_updated_on) >= current date - 7 days
+      - Opened By is not Guest Guest
 
-.PARAMETER InstanceUrl
-    Base URL of the ServiceNow instance.
+    Downloads land in -DownloadDir as incident.csv, are processed into Delta +
+    Parquet by scripts/process_servicenow_data.py, then the staging CSV is
+    archived under Data/archive/.
 
-.PARAMETER AssignmentGroup
-    Display name of the assignment group to filter on.
+    Use -Mode Full for a one-off historical extract (opened_at last 24 months)
+    without the 7-day Updated filter; still excludes Guest Guest.
+
+.PARAMETER Mode
+    Daily (default) or Full.
 
 .EXAMPLE
     .\Export-ServiceNowIncidents.ps1
 #>
 [CmdletBinding()]
 param(
+    [ValidateSet('Daily', 'Full')]
+    [string]$Mode = 'Daily',
+
     [string]$InstanceUrl = 'https://assaabloy.service-now.com',
 
     [string]$AssignmentGroup = 'AAES - North America - User IT Workplace',
 
-    # Folder the downloaded CSV is moved into once Chrome finishes downloading.
-    [string]$DownloadDir = 'C:\Users\pebren\Development\ServiceNow-KPI\Data'
+    [string]$DownloadDir = 'C:\Users\pebren\Development\ServiceNow-KPI-V2\Data',
+
+    [string]$PythonExe = 'python',
+
+    [switch]$SkipProcess
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Exact column order for the extract
 $fields = @(
     'number'
     'opened_at'
@@ -103,20 +106,28 @@ $fields = @(
 )
 
 $instance = $InstanceUrl.TrimEnd('/')
+$repoRoot = $PSScriptRoot
 
-# Last 24 months: from the first day of the calendar month that is 24 months
-# before the current month through today (computed when the script runs).
-$currentMonthStart = Get-Date -Year (Get-Date).Year -Month (Get-Date).Month -Day 1 -Hour 0 -Minute 0 -Second 0
-$openedOnOrAfter = $currentMonthStart.AddMonths(-24)
-$openedOnOrAfterStr = $openedOnOrAfter.ToString('yyyy-MM-dd HH:mm:ss')
-
-$query = [uri]::EscapeDataString(
-    "assignment_group.name=$AssignmentGroup^opened_at>=$openedOnOrAfterStr^ORDERBYnumber"
-)
+if ($Mode -eq 'Daily') {
+    $updatedOnOrAfter = (Get-Date).Date.AddDays(-7)
+    $updatedOnOrAfterStr = $updatedOnOrAfter.ToString('yyyy-MM-dd HH:mm:ss')
+    $query = [uri]::EscapeDataString(
+        "assignment_group.name=$AssignmentGroup^sys_updated_on>=$updatedOnOrAfterStr^opened_by.name!=Guest Guest^ORDERBYnumber"
+    )
+    Write-Host "Daily filter: assignment_group='$AssignmentGroup'; sys_updated_on >= $updatedOnOrAfterStr; opened_by != Guest Guest"
+}
+else {
+    $currentMonthStart = Get-Date -Year (Get-Date).Year -Month (Get-Date).Month -Day 1 -Hour 0 -Minute 0 -Second 0
+    $openedOnOrAfter = $currentMonthStart.AddMonths(-24)
+    $openedOnOrAfterStr = $openedOnOrAfter.ToString('yyyy-MM-dd HH:mm:ss')
+    $query = [uri]::EscapeDataString(
+        "assignment_group.name=$AssignmentGroup^opened_at>=$openedOnOrAfterStr^opened_by.name!=Guest Guest^ORDERBYnumber"
+    )
+    Write-Host "Full filter: assignment_group='$AssignmentGroup'; opened_at >= $openedOnOrAfterStr; opened_by != Guest Guest"
+}
 
 $exportUrl = "$instance/incident_list.do?CSV&sysparm_query=$query&sysparm_fields=$($fields -join ',')"
 
-# Locate chrome.exe (standard install locations, then PATH)
 $chromeCandidates = @(
     "$env:ProgramFiles\Google\Chrome\Application\chrome.exe"
     "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
@@ -130,34 +141,23 @@ if (-not $chrome) {
     throw 'Google Chrome was not found. Install Chrome or update the paths in this script.'
 }
 
-# Step 1: open the Service Portal so Chrome establishes a ServiceNow session.
-# The CSV export endpoint returns 401 when no session exists, so this must
-# happen before the export URL is opened.
 Write-Host 'Opening ServiceNow in Chrome so you can sign in (skip if already signed in)...'
 Start-Process -FilePath $chrome -ArgumentList "$instance/sp"
-
 Read-Host 'Once the ServiceNow portal has loaded and you are signed in, press Enter to start the export'
 
-# Ensure the destination folder exists.
 if (-not (Test-Path $DownloadDir)) {
     New-Item -ItemType Directory -Path $DownloadDir -Force | Out-Null
 }
 
-# Resolve the browser's default Downloads folder so we can detect the new file.
 $downloadsFolder = Join-Path $env:USERPROFILE 'Downloads'
-
-# Record CSV files already present so we can identify the freshly downloaded one.
 $before = @{}
 Get-ChildItem -Path $downloadsFolder -Filter '*.csv' -File -ErrorAction SilentlyContinue |
     ForEach-Object { $before[$_.FullName] = $true }
 $startTime = Get-Date
 
-# Step 2: open the export URL; the CSV downloads using the session just created.
-Write-Host "Opening export in Chrome for assignment group '$AssignmentGroup'..."
-Write-Host "Date filter: opened_at >= $openedOnOrAfterStr (24 months from current month start)"
+Write-Host "Opening incident export in Chrome ($Mode)..."
 Start-Process -FilePath $chrome -ArgumentList $exportUrl
 
-# Step 3: wait for Chrome to finish downloading, then move the file.
 Write-Host 'Waiting for the download to complete...'
 $timeoutSeconds = 600
 $newFile = $null
@@ -165,7 +165,6 @@ $newFile = $null
 while (((Get-Date) - $startTime).TotalSeconds -lt $timeoutSeconds) {
     Start-Sleep -Seconds 2
 
-    # A download in progress shows up as a .crdownload file in Chrome.
     $inProgress = Get-ChildItem -Path $downloadsFolder -Filter '*.crdownload' -File -ErrorAction SilentlyContinue
     if ($inProgress) { continue }
 
@@ -175,7 +174,6 @@ while (((Get-Date) - $startTime).TotalSeconds -lt $timeoutSeconds) {
         Select-Object -First 1
 
     if ($candidate) {
-        # Confirm the file size is stable before moving it.
         $size1 = $candidate.Length
         Start-Sleep -Seconds 1
         $size2 = (Get-Item $candidate.FullName).Length
@@ -188,11 +186,27 @@ while (((Get-Date) - $startTime).TotalSeconds -lt $timeoutSeconds) {
 
 if (-not $newFile) {
     Write-Warning "No new CSV detected in '$downloadsFolder' within $timeoutSeconds seconds."
-    Write-Warning 'If the download is still running, move the file into the Data folder manually.'
+    Write-Warning 'If the download is still running, move the file into the Data folder manually and run process_servicenow_data.py.'
     return
 }
 
-$destination = Join-Path $DownloadDir $newFile.Name
+$destination = Join-Path $DownloadDir 'incident.csv'
 Move-Item -Path $newFile.FullName -Destination $destination -Force
+Write-Host "Staging CSV saved to $destination"
 
-Write-Host "Done. CSV saved to $destination"
+if ($SkipProcess) {
+    Write-Host 'SkipProcess set; not running Delta/Parquet upsert.'
+    return
+}
+
+$processor = Join-Path $repoRoot 'scripts\process_servicenow_data.py'
+if (-not (Test-Path $processor)) {
+    throw "Processor not found: $processor"
+}
+
+& $PythonExe $processor --mode daily --table incident --data-dir $DownloadDir
+if ($LASTEXITCODE -ne 0) {
+    throw "process_servicenow_data.py failed with exit code $LASTEXITCODE"
+}
+
+Write-Host 'Incident extract processed into Delta Lake and Parquet snapshot.'

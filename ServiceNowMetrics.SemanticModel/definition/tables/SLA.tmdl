@@ -337,7 +337,7 @@ table SLA
 		mode: import
 		source =
 				let
-				  Source = Excel.Workbook(File.Contents("C:\Users\pebren\Development\ServiceNow-KPI\Data\slas.xlsx"), null, true),
+				  Source = Excel.Workbook(File.Contents("C:\Users\pebren\Development\ServiceNow-KPI-V2\Data\slas.xlsx"), null, true),
 				  #"Navigation 1" = Source{[Item = "SLA", Kind = "Sheet"]}[Data],
 				  #"Promoted headers" = Table.PromoteHeaders(#"Navigation 1", [PromoteAllScalars = true]),
 				  #"Changed column type" = Table.TransformColumnTypes(#"Promoted headers", {{"SLA", type text}, {"SLA_Critical", Int64.Type}, {"SLA_Warn", Int64.Type}, {"SLA_Caution", Int64.Type}, {"SLA_Base", Int64.Type}})
