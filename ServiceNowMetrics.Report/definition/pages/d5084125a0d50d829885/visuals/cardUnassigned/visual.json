@@ -216,7 +216,7 @@
                         {
                           "Condition": {
                             "Comparison": {
-                              "ComparisonKind": 2,
+                              "ComparisonKind": 1,
                               "Left": {
                                 "Measure": {
                                   "Expression": {
@@ -337,7 +337,7 @@
                           },
                           "Value": {
                             "Literal": {
-                              "Value": "'#0B1635'"
+                              "Value": "'#008000'"
                             }
                           }
                         }
