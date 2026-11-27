@@ -170,10 +170,10 @@ table incident
 			RETURN
 				SWITCH(
 					TRUE(),
-					NOT(ISBLANK(SlaWarn)) && UnassignedCount >= SlaWarn, "#C00000",
+					NOT(ISBLANK(SlaWarn)) && UnassignedCount > SlaWarn, "#C00000",
 					NOT(ISBLANK(SlaCaution)) && NOT(ISBLANK(SlaWarn)) && UnassignedCount > SlaCaution && UnassignedCount <= SlaWarn, "#FF6B35",
 					NOT(ISBLANK(SlaBase)) && NOT(ISBLANK(SlaCaution)) && UnassignedCount > SlaBase && UnassignedCount <= SlaCaution, "#FFC000",
-					NOT(ISBLANK(SlaBase)) && UnassignedCount <= SlaBase, "#0B1635",
+					NOT(ISBLANK(SlaBase)) && UnassignedCount <= SlaBase, "#008000",
 					"#B3B3B3"
 				)
 		isHidden
