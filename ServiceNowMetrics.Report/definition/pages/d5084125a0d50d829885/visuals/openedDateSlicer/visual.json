@@ -66,7 +66,7 @@
             "endDate": {
               "expr": {
                 "Literal": {
-                  "Value": "datetime'2026-11-26T00:00:00'"
+                  "Value": "datetime'2026-11-27T00:00:00'"
                 }
               }
             },
@@ -132,7 +132,7 @@
                             },
                             "Right": {
                               "Literal": {
-                                "Value": "datetime'2026-11-27T00:00:00'"
+                                "Value": "datetime'2026-11-28T00:00:00'"
                               }
                             }
                           }
@@ -294,5 +294,23 @@
       "filterChanges": true
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "4a915617707ef62e40e8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "incident"
+              }
+            },
+            "Property": "opened_at"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
   }
 }
