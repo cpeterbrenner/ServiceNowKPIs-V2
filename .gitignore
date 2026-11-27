@@ -1,2 +1,14 @@
 **/.pbi/localSettings.json
 **/.pbi/cache.abf
+
+# Delta Lake working tables (rebuildable from CSV/Parquet)
+Data/delta/
+
+# Staged extract archives after upsert
+Data/archive/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

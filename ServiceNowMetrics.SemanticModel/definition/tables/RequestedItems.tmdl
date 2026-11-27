@@ -548,10 +548,9 @@ table RequestedItems
 				    {"u_rpt_open_duration_test", Int64.Type}, {"reopen_count", Int64.Type}, {"resolved_at", type datetime},
 				    {"sys_updated_on", type datetime}, {"sys_mod_count", Int64.Type}
 				  },
-				  Source = Csv.Document(File.Contents("C:\Users\pebren\Development\ServiceNow-KPI\Data\sc_req_item.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
-				  #"Promoted headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				  MissingColumns = List.Difference(ExpectedColumns, Table.ColumnNames(#"Promoted headers")),
-				  #"Added missing columns" = List.Accumulate(MissingColumns, #"Promoted headers", (state, col) => Table.AddColumn(state, col, each null, type text)),
+				  Source = Parquet.Document(File.Contents("C:\Users\pebren\Development\ServiceNow-KPI-V2\Data\sc_req_item.parquet")),
+				  MissingColumns = List.Difference(ExpectedColumns, Table.ColumnNames(Source)),
+				  #"Added missing columns" = List.Accumulate(MissingColumns, Source, (state, col) => Table.AddColumn(state, col, each null, type text)),
 				  #"Kept export columns" = Table.SelectColumns(#"Added missing columns", ExpectedColumns),
 				  ExistingTypeMap = List.Select(TypeMap, each List.Contains(Table.ColumnNames(#"Kept export columns"), _{0})),
 				  #"Changed column type" = Table.TransformColumnTypes(#"Kept export columns", ExistingTypeMap),
